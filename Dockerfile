@@ -1,0 +1,18 @@
+FROM --platform=linux/amd64 openjdk:8-jdk-alpine
+
+# 安装必要的依赖
+RUN apk add --no-cache bash
+RUN cd /opt \
+	&& wget https://archive.apache.org/dist/kafka/2.8.1/kafka_2.12-2.8.1.tgz \
+	&& tar -zxvf kafka_2.12-2.8.1.tgz \
+	&& rm -rf /opt/kafka_2.12-2.8.1.tgz \
+	&& ln -s /opt/kafka_2.12-2.8.1 /opt/kafka
+
+RUN mkdir -p /opt/kafka-mirror-config/
+ADD ./consumer-mirror.properties /opt/kafka-mirror-config/
+ADD ./producer-mirror.properties /opt/kafka-mirror-config/
+
+# entrypoint
+ENTRYPOINT ["/opt/kafka/bin/kafka-mirror-maker.sh"]
+
+# /opt/kafka/bin/kafka-mirror-maker.sh --abort.on.send.failure true --new.consumer --producer.config /opt/kafka-mirror-config/producer-mirror.properties --consumer.config /opt/kafka-mirror-config/consumer-mirror.properties --whitelist "*"
